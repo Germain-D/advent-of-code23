@@ -121,9 +121,141 @@ type lighting struct {
 	direction   string
 }
 
+func Direction(l lighting, tab []tile) lighting {
+	if l.currentcase.mirror == "/" {
+		if l.direction == "up" {
+			/* check if the case exists*/
+			if l.currentcase.right != -1 {
+				l.currentcase = tab[l.currentcase.right]
+				tab[l.currentcase.right].visited = true
+				l.direction = "right"
+			} else {
+				l.direction = "out"
+			}
+		} else if l.direction == "down" {
+			if l.currentcase.left != -1 {
+				l.currentcase = tab[l.currentcase.left]
+				tab[l.currentcase.left].visited = true
+				l.direction = "left"
+			} else {
+				l.direction = "out"
+			}
+		} else if l.direction == "left" {
+			if l.currentcase.down != -1 {
+				l.currentcase = tab[l.currentcase.down]
+				tab[l.currentcase.down].visited = true
+				l.direction = "down"
+			} else {
+				l.direction = "out"
+			}
+		} else if l.direction == "right" {
+			if l.currentcase.up != -1 {
+				l.currentcase = tab[l.currentcase.up]
+				tab[l.currentcase.up].visited = true
+				l.direction = "up"
+			} else {
+				l.direction = "out"
+			}
+		}
+	} else if l.currentcase.mirror == "\\" {
+		if l.direction == "up" {
+			if l.currentcase.left != -1 {
+				l.currentcase = tab[l.currentcase.left]
+				tab[l.currentcase.left].visited = true
+				l.direction = "left"
+			} else {
+				l.direction = "out"
+			}
+		} else if l.direction == "down" {
+			if l.currentcase.right != -1 {
+				l.currentcase = tab[l.currentcase.right]
+				tab[l.currentcase.right].visited = true
+				l.direction = "right"
+			} else {
+				l.direction = "out"
+			}
+		} else if l.direction == "left" {
+			if l.currentcase.up != -1 {
+				l.currentcase = tab[l.currentcase.up]
+				tab[l.currentcase.up].visited = true
+				l.direction = "up"
+			} else {
+				l.direction = "out"
+			}
+		} else if l.direction == "right" {
+			if l.currentcase.down != -1 {
+				l.currentcase = tab[l.currentcase.down]
+				tab[l.currentcase.down].visited = true
+				l.direction = "down"
+			} else {
+				l.direction = "out"
+			}
+		}
+	} else if l.currentcase.mirror == "-" {
+		if l.direction == "left" {
+			if l.currentcase.left != -1 {
+				l.currentcase = tab[l.currentcase.left]
+				tab[l.currentcase.left].visited = true
+				l.direction = "left"
+			} else {
+				l.direction = "out"
+			}
+
+		} else if l.direction == "right" {
+			if l.currentcase.right != -1 {
+				l.currentcase = tab[l.currentcase.right]
+				tab[l.currentcase.right].visited = true
+				l.direction = "right"
+			} else {
+				l.direction = "out"
+			}
+		} else {
+			l.direction = "splitdown"
+		}
+	} else if l.currentcase.mirror == "|" {
+		if l.direction == "up" {
+			if l.currentcase.up != -1 {
+				l.currentcase = tab[l.currentcase.up]
+				tab[l.currentcase.up].visited = true
+
+			} else {
+				l.direction = "out"
+			}
+		} else if l.direction == "down" {
+			if l.currentcase.down != -1 {
+				l.currentcase = tab[l.currentcase.down]
+				tab[l.currentcase.down].visited = true
+
+			} else {
+				l.direction = "out"
+			}
+		} else {
+			l.direction = "splitup"
+		}
+	} else {
+		if l.direction == "up" && l.currentcase.up != -1 {
+			l.currentcase = tab[l.currentcase.up]
+			tab[l.currentcase.up].visited = true
+		}
+		if l.direction == "down" && l.currentcase.down != -1 {
+			l.currentcase = tab[l.currentcase.down]
+			tab[l.currentcase.down].visited = true
+		}
+		if l.direction == "left" && l.currentcase.left != -1 {
+			l.currentcase = tab[l.currentcase.left]
+			tab[l.currentcase.left].visited = true
+		}
+		if l.direction == "right" && l.currentcase.right != -1 {
+			l.currentcase = tab[l.currentcase.right]
+			tab[l.currentcase.right].visited = true
+		}
+	}
+	fmt.Println(l)
+	return l
+}
+
 func LightingPropagation(tab []tile) []tile {
 	var lightings []lighting
-	var tiles []tile
 
 	/* first lighting*/
 	var l lighting
@@ -131,26 +263,46 @@ func LightingPropagation(tab []tile) []tile {
 	l.currentcase = tab[0]
 	l.direction = "right"
 	lightings = append(lightings, l)
-
-	for len(lightings) > 0 {
+	z := 0
+	for z > 1000 {
 
 		/* faire bouger l'éclair*/
+		for i := 0; i < len(lightings); i++ {
+			lightings[i] = Direction(lightings[i], tab)
 
-		/* sortie d'un éclair*/
-		if lightings[0].direction == "up" && lightings[0].currentcase.up != -1 {
-			lightings[0].currentcase = tab[lightings[0].currentcase.up]
-		} else if lightings[0].direction == "down" && lightings[0].currentcase.down != -1 {
-			lightings[0].currentcase = tab[lightings[0].currentcase.down]
-		} else if lightings[0].direction == "left" && lightings[0].currentcase.left != -1 {
-			lightings[0].currentcase = tab[lightings[0].currentcase.left]
-		} else if lightings[0].direction == "right" && lightings[0].currentcase.right != -1 {
-			lightings[0].currentcase = tab[lightings[0].currentcase.right]
-		} else {
-			lightings = lightings[1:]
+			if lightings[i].direction == "splitup" {
+				fmt.Println("splitup")
+				var l1 lighting
+				l1.id = len(lightings)
+				l1.currentcase = lightings[i].currentcase
+				l1.direction = "up"
+				lightings = append(lightings, l1)
+				var l2 lighting
+				l2.id = len(lightings)
+				l2.currentcase = lightings[i].currentcase
+				l2.direction = "down"
+				lightings = append(lightings, l2)
+				/*remove current lighting*/
+				lightings = append(lightings[:i], lightings[i+1:]...)
+			} else if lightings[i].direction == "splitleft" {
+				var l1 lighting
+				l1.id = len(lightings)
+				l1.currentcase = lightings[i].currentcase
+				l1.direction = "left"
+				lightings = append(lightings, l1)
+				var l2 lighting
+				l2.id = len(lightings)
+				l2.currentcase = lightings[i].currentcase
+				l2.direction = "right"
+				lightings = append(lightings, l2)
+				/*remove current lighting*/
+				lightings = append(lightings[:i], lightings[i+1:]...)
+			} else if lightings[i].direction == "out" {
+				lightings = append(lightings[:i], lightings[i+1:]...)
+			}
 		}
-
 	}
-	return tiles
+	return tab
 }
 
 func Day16Star1() {
@@ -158,8 +310,14 @@ func Day16Star1() {
 	lines := importDataByFile()
 	/* create tab with columns*/
 	tab := CreateTile(lines)
-	fmt.Println(LightingPropagation(tab))
-
+	tab = LightingPropagation(tab)
+	counter := 0
+	for _, t := range tab {
+		if t.visited {
+			counter++
+		}
+	}
+	fmt.Println(counter)
 }
 
 func Day16Star2() {
