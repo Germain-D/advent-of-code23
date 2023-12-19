@@ -80,13 +80,7 @@ func symbolAround(number *PosNumber, lines []string) bool {
 }
 
 func EngineCheck1(top string, mid string, bottom string) int {
-	/* split if not alphanumeric*/
-	//pattern := regexp.MustCompile(`[^a-zA-Z0-9.]`)
-	//top_split := pattern.Split(top, -1)
-	//mid_split := pattern.Split(mid, -1)
-	//bottom_split := pattern.Split(bottom, -1)
-	//fmt.Println(mid)
-	//fmt.Println(mid_split)
+
 	for i := 0; i < len(mid); i++ {
 		/* if char is alphanumeric, check if it's a tree*/
 		if mid[i] != '.' {
@@ -105,30 +99,7 @@ func EngineCheck1(top string, mid string, bottom string) int {
 }
 
 func DayThreeStar1() {
-	// tab := importDataByFile()
-	// tab_to_sum := []int{}
-	// /*for _, ligne := range tab {
-	// 	res := EngineCheck1(ligne)
-	// 	tab_to_sum = append(tab_to_sum, res)
-	// }*/
 
-	// match, _ := regexp.MatchString("[^a-zA-Z0-9.]", "999999")
-	// fmt.Println(match)
-	// pattern := regexp.MustCompile(`[^a-zA-Z0-9.]`)
-	// for i := 0; i < len(tab); i++ {
-	// 	if pattern.MatchString(tab[i]) {
-	// 		top := tab[i-1]
-	// 		mid := tab[i]
-	// 		bottom := tab[i+1]
-	// 		EngineCheck1(top, mid, bottom)
-	// 	}
-	// }
-
-	// var sum int
-	// for _, i := range tab_to_sum {
-	// 	sum += i
-	// }
-	// fmt.Println(sum)
 	lines := importDataByFile()
 
 	var allNumbers []*PosNumber
@@ -161,6 +132,108 @@ func DayThreeStar1() {
 
 }
 
+type Gear struct {
+	id   int
+	num  []int
+	line string
+	col  int
+}
+
+func symbolAround2(number *PosNumber, lines []string) []Gear {
+	from := number.StartPos - 1
+	if from < 0 {
+		from = 0
+	}
+	to := number.EndPos + 1
+	if to > len(lines[0]) {
+		to = len(lines[0])
+	} // assume all lines have same len
+
+	// loop three lines
+	for looplines := number.LineIndex - 1; looplines <= number.LineIndex+1; looplines++ {
+		if looplines < 0 || looplines >= len(lines) {
+			continue
+		}
+		// inspect line characters
+		var indexs []int
+
+		for index := from; index < to; index++ {
+			if lines[looplines][index] == '*' {
+				indexs = append(indexs, index)
+			}
+		}
+		//symbolFound := strings.IndexAny(lines[looplines][from:to], "*")
+		// we know enough already
+		if len(indexs) > 0 {
+			var gears []Gear
+			for _, index := range indexs {
+				gears = append(gears, Gear{id: number.Number, num: []int{number.Number}, line: lines[looplines], col: index})
+			}
+			/* print indexes of the symbol*/
+			fmt.Println(indexs)
+			/*print line*/
+			fmt.Println(lines[looplines])
+			fmt.Println(number.Number)
+			return gears
+		}
+	}
+
+	return []Gear{}
+}
+
+type Gear2 struct {
+	num  []int
+	line string
+	col  int
+}
+
+func DayThreeStar2() {
+
+	lines := importDataByFile()
+
+	var allNumbers []*PosNumber
+	for lineIndex, line := range lines {
+		numbersForLine := findNumbers(line)
+
+		fmt.Printf("%s\n", line)
+
+		for _, res := range numbersForLine {
+			// record the lineIndex for found numbers
+			res.LineIndex = lineIndex
+			fmt.Printf("line: %d, cols:(%d-%d), n:%d\n ", res.LineIndex, res.StartPos, res.EndPos, res.Number)
+		}
+		allNumbers = append(allNumbers, numbersForLine...)
+	}
+
+	var gears []Gear
+	for _, number := range allNumbers {
+		gear := symbolAround2(number, lines)
+		if len(gear) > 0 {
+			gears = append(gears, gear...)
+		}
+	}
+
+	var tab []Gear2
+	for _, gear := range gears {
+
+		for i := 0; i < len(tab); i++ {
+			if tab[i].col == gear.col && tab[i].line == gear.line {
+				tab[i].num = append(tab[i].num, gear.num...)
+			}
+		}
+		tab = append(tab, Gear2{num: gear.num, line: gear.line, col: gear.col})
+	}
+
+	sum := 0
+	for _, elem := range tab {
+		if len(elem.num) == 2 {
+			sum += (elem.num[0] * elem.num[1])
+		}
+	}
+	fmt.Println(sum)
+
+}
+
 func main() {
-	DayThreeStar1()
+	DayThreeStar2()
 }
